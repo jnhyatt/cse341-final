@@ -2,7 +2,9 @@ import { db } from "../config/db.js";
 
 export async function updateUser(req, res, next) {
     try {
-        const result = await db.collection("users").updateOne({ _id: req.params.id }, { $set: req.body });
+        const result = await db
+            .collection("users")
+            .updateOne({ _id: req.params.id }, { $set: { name: req.body.name } });
 
         if (result.matchedCount === 0) {
             return res.status(404).send("User not found");

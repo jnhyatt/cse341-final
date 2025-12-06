@@ -9,7 +9,7 @@ export function requireAuth(req, res, next) {
 
 export function requireSelf(req, res, next) {
     const id = req.params.id;
-    if (id !== req.user.id) {
+    if (id !== req.user._id) {
         return res.status(403).send("Forbidden: You can only modify your own resources");
     }
     next();
@@ -25,7 +25,7 @@ export function requireOwnership(collection) {
                 return res.status(404).send(`${collection.slice(0, -1)} not found`);
             }
 
-            if (resource.owner !== req.user.id) {
+            if (resource.owner !== req.user._id) {
                 return res.status(403).send("Forbidden: You can only modify your own resources");
             }
 

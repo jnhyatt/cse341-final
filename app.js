@@ -39,8 +39,13 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(cors());
 app.use(express.json());
+app.use(
+    cors({
+        origin: true, // Allow requests from any origin (for development)
+        credentials: true, // Allow cookies to be sent
+    }),
+);
 
 app.use("/auth", authRouter);
 app.use("/users", usersRouter);
