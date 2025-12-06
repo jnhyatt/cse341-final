@@ -9,6 +9,7 @@ import {
 } from "./components/schemas/plane.openapi.js";
 import { packageLoadRequest, packageResponse } from "./components/schemas/package.openapi.js";
 import { airplaneModelResponse } from "./components/schemas/airplane-model.openapi.js";
+import { allAirportsParams, nearbyAirportsParams } from "./components/parameters/query.params.js";
 
 const options = {
     definition: {
@@ -29,6 +30,10 @@ const options = {
                 PackageLoadRequest: packageLoadRequest,
                 PackageResponse: packageResponse,
                 AirplaneModelResponse: airplaneModelResponse,
+            },
+            parameters: {
+                AllAirportsParams: allAirportsParams,
+                NearbyAirportsParams: nearbyAirportsParams,
             },
         },
     },

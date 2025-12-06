@@ -21,4 +21,17 @@ const airportResponse = Joi.object({
     }).required(),
 }).required();
 
-export { airportResponse };
+// Query parameters for nearby airports search
+const nearbyQuery = Joi.object({
+    radius: Joi.number().min(1).max(20000000).default(100000), // meters (default 100km)
+    limit: Joi.number().integer().min(1).max(100).default(10),
+    page: Joi.number().integer().min(1).default(1), // page number, starts at 1
+}).required();
+
+// General pagination query parameters
+const allAirportsQuery = Joi.object({
+    limit: Joi.number().integer().min(1).max(100).default(10),
+    page: Joi.number().integer().min(1).default(1),
+}).required();
+
+export { airportResponse, nearbyQuery, allAirportsQuery as allAirportsQuery };
