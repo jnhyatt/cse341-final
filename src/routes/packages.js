@@ -1,5 +1,15 @@
 import express from "express";
-import { getPackages, getPackageById, loadPackage, unloadPackage } from "../controllers/packages.js";
+import {
+    getPackages,
+    getPackageById,
+    getPackagesAtAirport,
+    getPackagesOnboard,
+    loadPackage,
+    unloadPackage,
+} from "../controllers/packages.js";
+import { allPackagesQuery } from "../validators/package.schema.js";
+import { validateParams, validateQuery } from "../middleware/validate.js";
+import { planeIdParam } from "../validators/plane.schema.js";
 
 const router = express.Router();
 
@@ -20,7 +30,7 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/PackageResponse'
  */
-router.get("/", getPackages);
+router.get("/", validateQuery(allPackagesQuery), getPackages);
 
 /**
  * @swagger
@@ -50,6 +60,67 @@ router.get("/:id", getPackageById);
 
 /**
  * @swagger
+ * /packages/at-airport/{airport}:
+ *   get:
+ *     summary: Get packages at a specific airport
+ *     description: Returns all packages currently located at the specified airport (not loaded on planes). Public endpoint.
+ *     tags: [Packages]
+ *     parameters:
+ *       - in: path
+ *         name: airport
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Airport code (e.g., KSLC, KJFK)
+ *         example: "KSLC"
+ *     responses:
+ *       200:
+ *         description: List of packages at the airport
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PackageResponse'
+ *       404:
+ *         description: Airport not found
+ */
+router.get("/at-airport/:airport", getPackagesAtAirport);
+
+/**
+ * @swagger
+ * /packages/onboard/{id}:
+ *   get:
+ *     summary: Get packages onboard a specific plane
+ *     description: Returns all packages currently loaded on the specified plane. Public endpoint.
+ *     tags: [Packages]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: '^[0-9A-Z]{6}$'
+ *         description: Plane tail number (6 alphanumeric characters)
+ *         example: "N058DB"
+ *     responses:
+ *       200:
+ *         description: List of packages onboard the plane
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PackageResponse'
+ *       400:
+ *         description: Invalid plane tail number format
+ *       404:
+ *         description: Plane not found
+ */
+router.get("/onboard/:id", validateParams(planeIdParam), getPackagesOnboard);
+
+/**
+ * @swagger
  * /packages/{id}/load:
  *   put:
  *     summary: Load package onto a plane
@@ -69,7 +140,7 @@ router.get("/:id", getPackageById);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/PackageMoveRequest'
+ *             $ref: '#/components/schemas/PackageLoadRequest'
  *     responses:
  *       200:
  *         description: Package loaded successfully

@@ -100,7 +100,7 @@ async function arrivedPlanes() {
     return (
         await Promise.all(
             enRoutePlanes.map(async (plane) => {
-                const planeModel = await db.collection("planeModels").findOne({ _id: plane.modelId });
+                const planeModel = await db.collection("plane-models").findOne({ _id: plane.modelId });
                 const arrival = await arrivalTime(plane.whereabouts.enRoute, planeModel.speed);
                 return { plane, arrival };
             }),

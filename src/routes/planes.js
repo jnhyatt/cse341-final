@@ -9,8 +9,9 @@ import {
     repairPlane,
     deletePlane,
 } from "../controllers/planes.js";
-import { validateParams } from "../middleware/validate.js";
-import { planeIdParam } from "../validators/plane.schema.js";
+import { validateParams, validateQuery } from "../middleware/validate.js";
+import { planeIdParam, allPlanesQuery } from "../validators/plane.schema.js";
+import { requireAuth, requirePlaneOwnership } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/PlaneResponse'
  */
-router.get("/", getPlanes);
+router.get("/", validateQuery(allPlanesQuery), getPlanes);
 
 /**
  * @swagger
@@ -93,7 +94,7 @@ router.get("/:id", validateParams(planeIdParam), getPlaneById);
  *       409:
  *         description: Tail number already exists
  */
-router.post("/", purchasePlane);
+router.post("/", requireAuth, purchasePlane);
 
 /**
  * @swagger
@@ -130,7 +131,7 @@ router.post("/", purchasePlane);
  *       404:
  *         description: Plane not found
  */
-router.put("/:id/upgrade", validateParams(planeIdParam), upgradePlane);
+router.put("/:id/upgrade", requireAuth, requirePlaneOwnership, validateParams(planeIdParam), upgradePlane);
 
 /**
  * @swagger
@@ -171,7 +172,7 @@ router.put("/:id/upgrade", validateParams(planeIdParam), upgradePlane);
  *       404:
  *         description: Plane or destination airport not found
  */
-router.put("/:id/embark", validateParams(planeIdParam), embarkPlane);
+router.put("/:id/embark", requireAuth, requirePlaneOwnership, validateParams(planeIdParam), embarkPlane);
 
 /**
  * @swagger
@@ -214,7 +215,7 @@ router.put("/:id/embark", validateParams(planeIdParam), embarkPlane);
  *       404:
  *         description: Plane not found
  */
-router.patch("/:id/refuel", validateParams(planeIdParam), refuelPlane);
+router.patch("/:id/refuel", requireAuth, requirePlaneOwnership, validateParams(planeIdParam), refuelPlane);
 
 /**
  * @swagger
@@ -249,7 +250,7 @@ router.patch("/:id/refuel", validateParams(planeIdParam), refuelPlane);
  *       404:
  *         description: Plane not found
  */
-router.patch("/:id/repair", validateParams(planeIdParam), repairPlane);
+router.patch("/:id/repair", requireAuth, requirePlaneOwnership, validateParams(planeIdParam), repairPlane);
 
 /**
  * @swagger
@@ -278,6 +279,6 @@ router.patch("/:id/repair", validateParams(planeIdParam), repairPlane);
  *       404:
  *         description: Plane not found
  */
-router.delete("/:id", validateParams(planeIdParam), deletePlane);
+router.delete("/:id", requireAuth, requirePlaneOwnership, validateParams(planeIdParam), deletePlane);
 
 export default router;

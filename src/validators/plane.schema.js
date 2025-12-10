@@ -27,6 +27,12 @@ const planeIdParam = Joi.object({
         .required(),
 }).required();
 
+const planeParam = Joi.object({
+    plane: Joi.string()
+        .pattern(/^[0-9A-Z]{6}$/)
+        .required(),
+}).required();
+
 // POST - Purchase new plane
 const planePurchaseRequest = Joi.object({
     tailNumber: Joi.string()
@@ -57,4 +63,18 @@ const planeResponse = Joi.object({
     condition: Joi.number().min(0).max(100).required(),
 }).required();
 
-export { planePurchaseRequest, planeRefuelRequest, planeEmbarkRequest, planeResponse, planeIdParam };
+// GET all planes query parameters
+const allPlanesQuery = Joi.object({
+    limit: Joi.number().integer().min(1).max(100).default(10),
+    page: Joi.number().integer().min(1).default(1),
+}).required();
+
+export {
+    planePurchaseRequest,
+    planeRefuelRequest,
+    planeEmbarkRequest,
+    planeResponse,
+    planeIdParam,
+    planeParam,
+    allPlanesQuery,
+};

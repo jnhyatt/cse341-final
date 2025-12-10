@@ -8,11 +8,12 @@ export async function arrivalTime(enRoute, speed) {
         { lat: origin.latitude, long: origin.longitude },
         { lat: destination.latitude, long: destination.longitude },
     );
-    const travelTimeMs = (distance / speed) * 1000 * 60 * 60;
+    const travelTimeMs = (distance / speed) * 1000;
     return enRoute.departure + travelTimeMs;
 }
 
-function distanceBetween(originLatLong, destinationLatLong) {
+// Haversine formula to calculate distance between two lat/long points in meters
+export function distanceBetween(originLatLong, destinationLatLong) {
     const R = 6371000; // Earth's radius in meters
     const dLat = ((destinationLatLong.lat - originLatLong.lat) * Math.PI) / 180;
     const dLon = ((destinationLatLong.long - originLatLong.long) * Math.PI) / 180;

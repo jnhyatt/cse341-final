@@ -1,6 +1,5 @@
 export function errorHandler(err, _req, res, _next) {
-    // Log error for debugging (in production, use proper logger)
-    console.error("Error caught by errorHandler:", err);
+    console.error("Error:", err);
 
     // MongoDB duplicate key error
     if (err.code === 11000) {
@@ -11,7 +10,6 @@ export function errorHandler(err, _req, res, _next) {
         });
     }
 
-    // Joi validation error (if thrown rather than returned)
     if (err.name === "ValidationError" && err.isJoi) {
         return res.status(400).json({
             error: "Validation error",
@@ -19,7 +17,6 @@ export function errorHandler(err, _req, res, _next) {
         });
     }
 
-    // MongoDB CastError (invalid ObjectId format, etc.)
     if (err.name === "CastError") {
         return res.status(400).json({
             error: "Invalid ID format",
@@ -27,16 +24,22 @@ export function errorHandler(err, _req, res, _next) {
         });
     }
 
-    // Custom application errors (you can create these in your services)
     if (err.statusCode) {
         return res.status(err.statusCode).json({
             error: err.message,
         });
     }
 
-    // Default 500 error
     res.status(500).json({
         error: "Internal server error",
         message: process.env.NODE_ENV === "development" ? err.message : "Something went wrong",
     });
+}
+
+export class AppError extends Error {
+    constructor(message, statusCode) {
+        super(message);
+        this.statusCode = statusCode;
+        Error.captureStackTrace(this, this.constructor);
+    }
 }

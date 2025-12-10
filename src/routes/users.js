@@ -1,7 +1,7 @@
 import { getUserById, updateUser, deleteUser } from "../controllers/users.js";
 import express from "express";
 import { requireAuth, requireSelf } from "../middleware/auth.js";
-import { validate } from "../middleware/validate.js";
+import { validateBody } from "../middleware/validate.js";
 import { userRequest } from "../validators/user.schema.js";
 
 const router = express.Router();
@@ -86,7 +86,7 @@ router.get("/:id", getUserById);
  *       500:
  *         description: Server error
  */
-router.put("/:id", requireAuth, requireSelf, validate(userRequest), updateUser);
+router.put("/:id", requireAuth, requireSelf, validateBody(userRequest), updateUser);
 
 /**
  * @swagger
