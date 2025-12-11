@@ -37,7 +37,10 @@ export async function gameTick() {
             .filter((pkg) => pkg.destination === destination);
         for (const cargo of arrivedPackages) {
             const planeOwner = await db.collection("users").findOne({ _id: plane.owner });
-            await db.collection("users").updateOne({ _id: planeOwner._id }, { $inc: { funds: cargo.payout } });
+            // If the user deletes their account while a plane is in flight, planeOwner may be null
+            if (planeOwner) {
+                await db.collection("users").updateOne({ _id: planeOwner._id }, { $inc: { funds: cargo.payout } });
+            }
             await db.collection("packages").deleteOne({ _id: cargo._id });
         }
     }
