@@ -7,8 +7,8 @@ import {
     loadPackage,
     unloadPackage,
 } from "../controllers/packages.js";
-import { allPackagesQuery } from "../validators/package.schema.js";
-import { validateParams, validateQuery } from "../middleware/validate.js";
+import { allPackagesQuery, packageLoadRequest } from "../validators/package.schema.js";
+import { validateBody, validateParams, validateQuery } from "../middleware/validate.js";
 import { planeIdParam } from "../validators/plane.schema.js";
 
 const router = express.Router();
@@ -157,7 +157,7 @@ router.get("/onboard/:id", validateParams(planeIdParam), getPackagesOnboard);
  *       404:
  *         description: Package or plane not found
  */
-router.put("/:id/load", loadPackage);
+router.put("/:id/load", validateBody(packageLoadRequest), loadPackage);
 
 /**
  * @swagger

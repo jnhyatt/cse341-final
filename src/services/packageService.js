@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { db, mongoClient } from "../config/db.js";
 import { AppError } from "../middleware/errorHandler.js";
 
@@ -14,7 +15,7 @@ export async function getAllPackagesService(start, count) {
 }
 
 export async function getPackageByIdService(id) {
-    return await db.collection("packages").findOne({ _id: id });
+    return await db.collection("packages").findOne({ _id: new ObjectId(id) });
 }
 
 export async function getPackagesAtAirportService(airportId) {
@@ -35,7 +36,7 @@ export async function loadPackage(packageId, planeTailNumber) {
     const session = mongoClient.startSession();
     try {
         await session.withTransaction(async () => {
-            const pkg = await db.collection("packages").findOne({ _id: packageId }, { session });
+            const pkg = await db.collection("packages").findOne({ _id: new ObjectId(packageId) }, { session });
             if (!pkg) {
                 throw new AppError("Package not found", 404);
             }
@@ -46,7 +47,7 @@ export async function loadPackage(packageId, planeTailNumber) {
             await db
                 .collection("packages")
                 .updateOne(
-                    { _id: packageId },
+                    { _id: new ObjectId(packageId) },
                     { $set: { whereabouts: { type: "plane", plane: planeTailNumber } } },
                     { session },
                 );
@@ -60,7 +61,7 @@ export async function unloadPackage(packageId) {
     const session = mongoClient.startSession();
     try {
         await session.withTransaction(async () => {
-            const pkg = await db.collection("packages").findOne({ _id: packageId }, { session });
+            const pkg = await db.collection("packages").findOne({ _id: new ObjectId(packageId) }, { session });
             if (!pkg) {
                 throw new AppError("Package not found", 404);
             }
@@ -74,7 +75,7 @@ export async function unloadPackage(packageId) {
             await db
                 .collection("packages")
                 .updateOne(
-                    { _id: packageId },
+                    { _id: new ObjectId(packageId) },
                     { $set: { whereabouts: { type: "airport", airport: plane.whereabouts.airport } } },
                     { session },
                 );

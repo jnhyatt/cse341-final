@@ -3,6 +3,8 @@ import {
     getPackageByIdService,
     getPackagesAtAirportService,
     getPackagesOnboardService,
+    loadPackage as loadPackageService,
+    unloadPackage as unloadPackageService,
 } from "../services/packageService.js";
 
 export async function getPackages(req, res) {
@@ -26,10 +28,12 @@ export async function getPackagesOnboard(req, res) {
     res.json(await getPackagesOnboardService(req.params.id));
 }
 
-export function loadPackage(req, res) {
-    res.status(501).json({ message: "Not implemented yet" });
+export async function loadPackage(req, res) {
+    await loadPackageService(req.params.id, req.body.plane);
+    res.status(200).json({ message: "Package loaded onto plane successfully" });
 }
 
-export function unloadPackage(req, res) {
-    res.status(501).json({ message: "Not implemented yet" });
+export async function unloadPackage(req, res) {
+    await unloadPackageService(req.params.id);
+    res.status(200).json({ message: "Package unloaded from plane successfully" });
 }
