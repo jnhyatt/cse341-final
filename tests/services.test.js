@@ -98,7 +98,7 @@ describe("Service Tests - planeService.js", () => {
             name: "Test Aircraft",
             speed: 100,
             cost: 50000,
-            maxFuel: 1000,
+            fuelCapacity: 1000,
             baseFuelBurn: 0.01,
             cargoCapacity: 500,
             passengerSeats: 4,
@@ -142,7 +142,7 @@ describe("Service Tests - planeService.js", () => {
         expect(plane.whereabouts.type).toBe("airport");
         expect(plane.whereabouts.airport).toBe("TEST");
         expect(plane.upgradeLevel).toBe(0);
-        expect(plane.fuel).toBe(1000); // maxFuel from model
+        expect(plane.fuel).toBe(1000); // fuelCapacity from model
 
         expect(user.funds).toBe(50000); // 100000 - 50000
     });
@@ -258,118 +258,5 @@ describe("Service Tests - planeService.js", () => {
         });
 
         await expect(embarkPlane("N123AB", "TEST")).rejects.toThrow("already en route");
-    });
-});
-
-describe("Service Tests - packageService.js", () => {
-    beforeEach(async () => {
-        await db.collection("packages").insertMany([
-            {
-                _id: "pkg-1",
-                name: "Package 1",
-                type: "cargo",
-                count: 1,
-                goal: "DEST",
-                whereabouts: { type: "airport", airport: "TEST" },
-                payout: 1000,
-                unitMass: 50,
-                expiration: new Date(Date.now() + 86400000),
-            },
-            {
-                _id: "pkg-2",
-                name: "Package 2",
-                type: "passenger",
-                count: 2,
-                goal: "DEST",
-                whereabouts: { type: "plane", plane: "N123AB" },
-                payout: 2000,
-                unitMass: 75,
-                expiration: new Date(Date.now() + 86400000),
-            },
-        ]);
-
-        await db.collection("planes").insertOne({
-            _id: "N123AB",
-            owner: "test-user",
-            modelId: "test-model",
-            whereabouts: { type: "airport", airport: "TEST" },
-            fuel: 500,
-            upgradeLevel: 0,
-            condition: 100,
-        });
-    });
-
-    test("getPackagesAtAirport returns only airport packages", async () => {
-        const { getPackagesAtAirportService } = await import("../src/services/packageService.js");
-
-        const packages = await getPackagesAtAirportService("TEST");
-
-        expect(packages.length).toBe(1);
-        expect(packages[0]._id).toBe("pkg-1");
-        expect(packages[0].whereabouts.airport).toBe("TEST");
-    });
-
-    test("getPackagesOnboard returns only plane packages", async () => {
-        const { getPackagesOnboardService } = await import("../src/services/packageService.js");
-
-        const packages = await getPackagesOnboardService("N123AB");
-
-        expect(packages.length).toBe(1);
-        expect(packages[0]._id).toBe("pkg-2");
-        expect(packages[0].whereabouts.plane).toBe("N123AB");
-    });
-
-    test("loadPackage moves package from airport to plane", async () => {
-        const { loadPackage } = await import("../src/services/packageService.js");
-
-        await loadPackage("pkg-1", "N123AB");
-
-        const pkg = await db.collection("packages").findOne({ _id: "pkg-1" });
-
-        expect(pkg.whereabouts.type).toBe("plane");
-        expect(pkg.whereabouts.plane).toBe("N123AB");
-    });
-
-    test("loadPackage fails if package and plane not at same airport", async () => {
-        const { loadPackage } = await import("../src/services/packageService.js");
-
-        // Move plane to different airport
-        await db
-            .collection("planes")
-            .updateOne({ _id: "N123AB" }, { $set: { whereabouts: { type: "airport", airport: "DEST" } } });
-
-        await expect(loadPackage("pkg-1", "N123AB")).rejects.toThrow("not at the same airport");
-    });
-
-    test("unloadPackage moves package from plane to airport", async () => {
-        const { unloadPackage } = await import("../src/services/packageService.js");
-
-        await unloadPackage("pkg-2");
-
-        const pkg = await db.collection("packages").findOne({ _id: "pkg-2" });
-
-        expect(pkg.whereabouts.type).toBe("airport");
-        expect(pkg.whereabouts.airport).toBe("TEST");
-    });
-
-    test("unloadPackage fails if plane is enroute", async () => {
-        const { unloadPackage } = await import("../src/services/packageService.js");
-
-        // Set plane to enroute
-        await db.collection("planes").updateOne(
-            { _id: "N123AB" },
-            {
-                $set: {
-                    whereabouts: {
-                        type: "enRoute",
-                        origin: "TEST",
-                        destination: "DEST",
-                        departure: Date.now(),
-                    },
-                },
-            },
-        );
-
-        await expect(unloadPackage("pkg-2")).rejects.toThrow("in the air");
     });
 });

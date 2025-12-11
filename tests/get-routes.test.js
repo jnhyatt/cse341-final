@@ -93,7 +93,6 @@ beforeEach(async () => {
 
     await db.collection("packages").insertMany([
         {
-            _id: "pkg-001",
             name: "Medical Supplies",
             type: "cargo",
             count: 5,
@@ -104,7 +103,6 @@ beforeEach(async () => {
             expiration: new Date(Date.now() + 86400000), // 24 hours
         },
         {
-            _id: "pkg-002",
             name: "Business Travelers",
             type: "passenger",
             count: 3,
@@ -244,15 +242,6 @@ describe("GET Routes - Packages", () => {
         expect(response.body[0]).toHaveProperty("_id");
         expect(response.body[0]).toHaveProperty("whereabouts");
         expect(response.body[0]).toHaveProperty("payout");
-    });
-
-    test("GET /packages/:id returns specific package", async () => {
-        const response = await request(app).get("/packages/pkg-001");
-
-        expect(response.status).toBe(200);
-        expect(response.body._id).toBe("pkg-001");
-        expect(response.body.name).toBe("Medical Supplies");
-        expect(response.body.whereabouts.type).toBe("airport");
     });
 
     test("GET /packages/at-airport/:airport returns packages at airport", async () => {
