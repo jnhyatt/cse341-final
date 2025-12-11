@@ -1,5 +1,7 @@
 export function validateBody(schema) {
     return (req, res, next) => {
+        console.log("Validating request body:", req.body);
+        console.log("Using schema:", schema);
         const { error } = schema.validate(req.body);
         if (error) {
             return res.status(400).json({

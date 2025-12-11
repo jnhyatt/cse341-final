@@ -45,66 +45,71 @@ export async function gameTick() {
     // Remove expired packages
     await db.collection("packages").deleteMany({ expiresAt: { $lte: Date.now() } });
 
-    // Spawn new packages at 20 random airports
-    const allAirports = await db.collection("airports").find({}).toArray();
-    const selectedAirports = allAirports.sort(() => Math.random() - 0.5).slice(0, 20);
-
-    const allPackages = await Promise.all(
-        selectedAirports.map(async (airport) => {
-            // Generate between 1 and 15 new packages
-            const packagePromises = [];
-            const numPackages = Math.floor(Math.random() * 15) + 1;
-            for (let i = 0; i < numPackages; i++) {
-                packagePromises.push(newPackage(airport));
-            }
-            const packages = await Promise.all(packagePromises);
-            return packages.filter((pkg) => pkg !== null);
-        }),
-    );
-
-    // Flatten and insert all packages at once
-    const packagesToInsert = allPackages.flat();
-    if (packagesToInsert.length > 0) {
-        console.log(`Inserting ${packagesToInsert.length} new packages`);
-        await db.collection("packages").insertMany(packagesToInsert);
-    }
-}
-
-async function newPackage(airport) {
-    // Spatial query: find airports within 2000km
-    const nearby = await db
+    // Spawn new packages at airports using aggregation pipeline
+    const airportsWithDestinations = await db
         .collection("airports")
-        .find({
-            _id: { $ne: airport._id },
-            location: {
-                $geoWithin: {
-                    $centerSphere: [[airport.location.coordinates[0], airport.location.coordinates[1]], 2000 / 6371],
+        .aggregate([
+            {
+                $lookup: {
+                    from: "airports",
+                    let: { airportLoc: "$location", airportId: "$_id" },
+                    pipeline: [
+                        {
+                            $geoNear: {
+                                near: "$$airportLoc",
+                                distanceField: "distance",
+                                maxDistance: 2000000,
+                                query: { _id: { $ne: "$$airportId" } },
+                                spherical: true,
+                            },
+                        },
+                        { $limit: 20 }, // Keep only 20 nearest airports
+                    ],
+                    as: "nearby",
                 },
             },
-        })
+        ])
         .toArray();
 
-    // If no nearby airports, return null
-    if (nearby.length === 0) {
-        return null;
+    // Exponential distribution favoring nearby airports
+    // Select the 20 nearest airports 80% of the time
+    function selectNearbyIndex(maxIndex) {
+        return Math.min(Math.floor(-Math.log(1 - Math.random()) / 0.08), maxIndex - 1);
     }
 
-    const count = Math.floor(Math.random() * 10) + 1;
-    const unitMass = Math.floor(Math.random() * 100) + 1;
-    const goal = nearby[Math.floor(Math.random() * nearby.length)];
-    return {
-        name: `${count} things going to ${goal._id}`,
-        type: "cargo",
-        count,
-        goal: goal._id,
-        whereabouts: {
-            type: "airport",
-            airport: airport._id,
-        },
-        payout: count * unitMass * (Math.floor(Math.random() * 5) + 1), // Random payout based on weight
-        unitMass,
-        expiration: new Date(Date.now() + 1000 * 60 * 60 * 48), // 48 hours from now
-    };
+    const packagesToInsert = [];
+    const now = Date.now();
+
+    for (const airport of airportsWithDestinations) {
+        if (airport.nearby.length === 0) continue;
+
+        // Generate between 1 and 3 packages
+        const numPackages = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < numPackages; i++) {
+            const count = Math.floor(Math.random() * 10) + 1;
+            const unitMass = Math.floor(Math.random() * 100) + 1;
+            const goalIndex = selectNearbyIndex(airport.nearby.length);
+            const goal = airport.nearby[goalIndex];
+
+            packagesToInsert.push({
+                name: `${count} things going to ${goal._id}`,
+                type: "cargo",
+                count,
+                goal: goal._id,
+                whereabouts: {
+                    type: "airport",
+                    airport: airport._id,
+                },
+                payout: count * unitMass * (Math.floor(Math.random() * 5) + 1),
+                unitMass,
+                expiration: new Date(now + 1000 * 60 * 60 * 48), // 48 hours from now
+            });
+        }
+    }
+
+    if (packagesToInsert.length > 0) {
+        await db.collection("packages").insertMany(packagesToInsert);
+    }
 }
 
 async function arrivedPlanes() {
