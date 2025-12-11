@@ -32,7 +32,7 @@ export function errorHandler(err, _req, res, _next) {
 
     res.status(500).json({
         error: "Internal server error",
-        message: process.env.NODE_ENV === "development" ? err.message : "Something went wrong",
+        message: err.message,
     });
 }
 
