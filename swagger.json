@@ -77,42 +77,12 @@
               "coordinates"
             ],
             "additionalProperties": false
-          },
-          "elevation_m": {
-            "type": "number",
-            "format": "float"
-          },
-          "runway": {
-            "type": "object",
-            "properties": {
-              "length_m": {
-                "type": "number",
-                "format": "float",
-                "minimum": 0
-              },
-              "width_m": {
-                "type": "number",
-                "format": "float",
-                "minimum": 0
-              },
-              "lighted": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "length_m",
-              "width_m",
-              "lighted"
-            ],
-            "additionalProperties": false
           }
         },
         "required": [
           "_id",
           "name",
-          "location",
-          "elevation_m",
-          "runway"
+          "location"
         ],
         "additionalProperties": false
       },
@@ -409,11 +379,6 @@
           "passengerSeats": {
             "type": "integer",
             "minimum": 0
-          },
-          "minRunwayLength": {
-            "type": "number",
-            "format": "float",
-            "minimum": 0
           }
         },
         "required": [
@@ -424,8 +389,7 @@
           "cargoCapacity",
           "baseFuelBurn",
           "fuelCapacity",
-          "passengerSeats",
-          "minRunwayLength"
+          "passengerSeats"
         ],
         "additionalProperties": false
       }

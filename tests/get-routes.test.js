@@ -10,8 +10,9 @@ beforeAll(async () => {
     connection = await MongoClient.connect(process.env.MONGO_URI_TEST);
     db = connection.db("test");
 
-    // Create geospatial index (only needs to be done once)
+    // Create indexes (only needs to be done once)
     await db.collection("airports").createIndex({ location: "2dsphere" });
+    await db.collection("packages").createIndex({ expiration: 1 });
 });
 
 beforeEach(async () => {
@@ -27,23 +28,17 @@ beforeEach(async () => {
         {
             _id: "KSLC",
             name: "Salt Lake City International Airport",
-            location: { type: "Point", coordinates: [-111.9778, 40.7899] },
-            elevation_m: 1288,
-            runway: { length_m: 3658, width_m: 46, lighted: true },
+            location: { type: "Point", coordinates: [-111.977772, 40.785749] },
         },
         {
             _id: "KJFK",
             name: "John F Kennedy International Airport",
-            location: { type: "Point", coordinates: [-73.7781, 40.6413] },
-            elevation_m: 4,
-            runway: { length_m: 4423, width_m: 61, lighted: true },
+            location: { type: "Point", coordinates: [-73.778925, 40.639447] },
         },
         {
             _id: "KORD",
             name: "Chicago O'Hare International Airport",
             location: { type: "Point", coordinates: [-87.9048, 41.9742] },
-            elevation_m: 205,
-            runway: { length_m: 3962, width_m: 61, lighted: true },
         },
     ]);
 
@@ -57,7 +52,6 @@ beforeEach(async () => {
             baseFuelBurn: 0.009,
             fuelCapacity: 212,
             passengerSeats: 3,
-            minRunwayLength: 500,
         },
         {
             _id: "boeing-737-800",
@@ -68,7 +62,6 @@ beforeEach(async () => {
             baseFuelBurn: 0.7,
             fuelCapacity: 26020,
             passengerSeats: 162,
-            minRunwayLength: 2000,
         },
     ]);
 

@@ -10,7 +10,6 @@ const airplaneModelResponse = Joi.object({
     baseFuelBurn: Joi.number().min(0).required(), // kg/s
     fuelCapacity: Joi.number().min(0).required(), // kg
     passengerSeats: Joi.number().integer().min(0).required(),
-    minRunwayLength: Joi.number().min(0).required(), // m
 }).required();
 
 export { airplaneModelResponse };

@@ -4,14 +4,15 @@ import { arrivalTime } from "./routes.js";
 const TICK_INTERVAL_MS = 1000 * 60 * 10; // 10 minutes per game tick
 let lastTickTime = Date.now();
 
-export function tickCatchup(currentTime) {
-    while (lastTickTime + TICK_INTERVAL_MS <= currentTime) {
-        gameTick();
-        lastTickTime += TICK_INTERVAL_MS;
-    }
+export function shouldTick(currentTime) {
+    return lastTickTime + TICK_INTERVAL_MS <= currentTime;
 }
 
-async function gameTick() {
+export function updateLastTickTime(currentTime) {
+    lastTickTime = currentTime;
+}
+
+export async function gameTick() {
     // Main game tick:
     // - Planes that have reached their destination have their whereabouts updated
     // - Packages that are now at their destination are cashed in and removed
@@ -44,15 +45,28 @@ async function gameTick() {
     // Remove expired packages
     await db.collection("packages").deleteMany({ expiresAt: { $lte: Date.now() } });
 
-    // Spawn new packages at airports
-    for (const airport of await db.collection("airports").find({}).toArray()) {
-        // Generate between 1 and 6 new packages
-        // Create an array by mapping [0, 1, 2...n] to newPackage()
-        const packagePromises = Array.from({ length: Math.floor(Math.random() * 6) + 1 }, () => null).map(() =>
-            newPackage(airport._id),
-        );
-        const newPackages = await Promise.all(packagePromises);
-        await db.collection("packages").insertMany(newPackages);
+    // Spawn new packages at 20 random airports
+    const allAirports = await db.collection("airports").find({}).toArray();
+    const selectedAirports = allAirports.sort(() => Math.random() - 0.5).slice(0, 20);
+
+    const allPackages = await Promise.all(
+        selectedAirports.map(async (airport) => {
+            // Generate between 1 and 15 new packages
+            const packagePromises = [];
+            const numPackages = Math.floor(Math.random() * 15) + 1;
+            for (let i = 0; i < numPackages; i++) {
+                packagePromises.push(newPackage(airport));
+            }
+            const packages = await Promise.all(packagePromises);
+            return packages.filter((pkg) => pkg !== null);
+        }),
+    );
+
+    // Flatten and insert all packages at once
+    const packagesToInsert = allPackages.flat();
+    if (packagesToInsert.length > 0) {
+        console.log(`Inserting ${packagesToInsert.length} new packages`);
+        await db.collection("packages").insertMany(packagesToInsert);
     }
 }
 
@@ -69,6 +83,12 @@ async function newPackage(airport) {
             },
         })
         .toArray();
+
+    // If no nearby airports, return null
+    if (nearby.length === 0) {
+        return null;
+    }
+
     const count = Math.floor(Math.random() * 10) + 1;
     const unitMass = Math.floor(Math.random() * 100) + 1;
     const goal = nearby[Math.floor(Math.random() * nearby.length)];
@@ -83,7 +103,7 @@ async function newPackage(airport) {
         },
         payout: count * unitMass * (Math.floor(Math.random() * 5) + 1), // Random payout based on weight
         unitMass,
-        expiration: new Date(Date.now() + 1000 * 60 * 60 * 6), // 6 hours from now
+        expiration: new Date(Date.now() + 1000 * 60 * 60 * 48), // 48 hours from now
     };
 }
 

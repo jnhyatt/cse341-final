@@ -13,12 +13,6 @@ const airportResponse = Joi.object({
     _id: airportId,
     name: Joi.string().required(),
     location: geoJsonPoint.required(),
-    elevation_m: Joi.number().required(),
-    runway: Joi.object({
-        length_m: Joi.number().min(0).required(),
-        width_m: Joi.number().min(0).required(),
-        lighted: Joi.boolean().required(),
-    }).required(),
 }).required();
 
 // Query parameters for nearby airports search

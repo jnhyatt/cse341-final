@@ -1,6 +1,10 @@
-import { tickCatchup } from "../services/gameTick.js";
+import { gameTick, shouldTick, updateLastTickTime } from "../services/gameTick.js";
 
 export function performGameTicks(req, res, next) {
-    tickCatchup(Date.now());
+    const currentTime = Date.now();
+    if (shouldTick(currentTime)) {
+        gameTick();
+        updateLastTickTime(currentTime);
+    }
     next();
 }

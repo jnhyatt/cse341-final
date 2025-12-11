@@ -7,6 +7,10 @@ let db;
 beforeAll(async () => {
     connection = await MongoClient.connect(process.env.MONGO_URI_TEST);
     db = connection.db("test");
+
+    // Create indexes
+    await db.collection("airports").createIndex({ location: "2dsphere" });
+    await db.collection("packages").createIndex({ expiration: 1 });
 });
 
 afterAll(async () => {
@@ -98,7 +102,6 @@ describe("Service Tests - planeService.js", () => {
             baseFuelBurn: 0.01,
             cargoCapacity: 500,
             passengerSeats: 4,
-            minRunwayLength: 500,
         });
 
         await db.collection("users").insertOne({
@@ -114,8 +117,6 @@ describe("Service Tests - planeService.js", () => {
                 latitude: 40.0,
                 longitude: -110.0,
                 location: { type: "Point", coordinates: [-110.0, 40.0] },
-                elevation_m: 100,
-                runway: { length_m: 1000, width_m: 30, lighted: true },
             },
             {
                 _id: "DEST",
@@ -123,8 +124,6 @@ describe("Service Tests - planeService.js", () => {
                 latitude: 41.0,
                 longitude: -110.0,
                 location: { type: "Point", coordinates: [-110.0, 41.0] },
-                elevation_m: 100,
-                runway: { length_m: 1000, width_m: 30, lighted: true },
             },
         ]);
     });
