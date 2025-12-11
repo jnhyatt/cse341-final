@@ -37,7 +37,7 @@ export async function purchasePlane(tailNumber, modelId, airportId, userId) {
                 modelId: modelId,
                 owner: userId,
                 whereabouts: { type: "airport", airport: airportId },
-                fuel: model.maxFuel,
+                fuel: model.fuelCapacity,
                 condition: 100,
                 upgradeLevel: 0,
             };
