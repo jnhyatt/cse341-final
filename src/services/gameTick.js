@@ -48,9 +48,10 @@ async function gameTick() {
     for (const airport of await db.collection("airports").find({}).toArray()) {
         // Generate between 1 and 6 new packages
         // Create an array by mapping [0, 1, 2...n] to newPackage()
-        const newPackages = Array.from({ length: Math.floor(Math.random() * 6) + 1 }, () => null).map(() =>
+        const packagePromises = Array.from({ length: Math.floor(Math.random() * 6) + 1 }, () => null).map(() =>
             newPackage(airport._id),
         );
+        const newPackages = await Promise.all(packagePromises);
         await db.collection("packages").insertMany(newPackages);
     }
 }

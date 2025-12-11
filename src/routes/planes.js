@@ -9,8 +9,8 @@ import {
     repairPlane,
     deletePlane,
 } from "../controllers/planes.js";
-import { validateParams, validateQuery } from "../middleware/validate.js";
-import { planeIdParam, allPlanesQuery } from "../validators/plane.schema.js";
+import { validateBody, validateParams, validateQuery } from "../middleware/validate.js";
+import { planeIdParam, allPlanesQuery, planePurchaseRequest } from "../validators/plane.schema.js";
 import { requireAuth, requirePlaneOwnership } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -94,7 +94,7 @@ router.get("/:id", validateParams(planeIdParam), getPlaneById);
  *       409:
  *         description: Tail number already exists
  */
-router.post("/", requireAuth, purchasePlane);
+router.post("/", requireAuth, validateBody(planePurchaseRequest), purchasePlane);
 
 /**
  * @swagger
