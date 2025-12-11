@@ -33,7 +33,7 @@ export async function upgradePlane(req, res) {
 }
 
 export async function embarkPlane(req, res) {
-    await embarkPlaneService(req.params.id, req.body.destinaion);
+    await embarkPlaneService(req.params.id, req.body.destination);
     res.json({ message: "Plane embarked successfully" });
 }
 
